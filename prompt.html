@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Prompt Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      max-width: 700px;
+    }
+
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 20px;
+      background-color: #f3f3f3;
+      padding: 15px;
+      white-space: pre-wrap;
+      border-left: 4px solid #007bff;
+    }
+  </style>
+</head>
+<body>
+  <h2>🔧 Prompt Template Generator</h2>
+
+  <label for="promptTemplate"><strong>Prompt Template</strong> (use {{variable}} syntax):</label>
+  <textarea id="promptTemplate" rows="5">
+You are a {{role}} helping {{audience}} to achieve {{goal}}.
+  </textarea>
+
+  <label for="role">Role:</label>
+  <input id="role" placeholder="e.g., career coach">
+
+  <label for="audience">Audience:</label>
+  <input id="audience" placeholder="e.g., new grads">
+
+  <label for="goal">Goal:</label>
+  <input id="goal" placeholder="e.g., find their first job">
+
+  <button onclick="generate()">Generate Prompt</button>
+
+  <div id="result"></div>
+
+  <script>
+    function generate() {
+      let template = document.getElementById("promptTemplate").value;
+      const vars = ["role", "audience", "goal"];
+      vars.forEach(function(key) {
+        const value = document.getElementById(key).value;
+        const regex = new RegExp(`{{${key}}}`, 'g');
+        template = template.replace(regex, value);
+      });
+      document.getElementById("result").innerText = template;
+    }
+  </script>
+</body>
+</html>
