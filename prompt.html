@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Prompt Generator</title>
+  <title>Flexible AI Prompt Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 40px;
-      max-width: 700px;
+      max-width: 900px;
     }
 
-    textarea, input {
+    textarea, input, select {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
@@ -35,36 +35,109 @@
   </style>
 </head>
 <body>
-  <h2>🔧 Prompt Template Generator</h2>
+  <h2>🧠 Flexible AI Prompt Generator</h2>
+
+  <label for="templateSelect"><strong>Select Fixed Template:</strong></label>
+  <select id="templateSelect" onchange="loadTemplate()"></select>
 
   <label for="promptTemplate"><strong>Prompt Template</strong> (use {{variable}} syntax):</label>
-  <textarea id="promptTemplate" rows="5">
-You are a {{role}} helping {{audience}} to achieve {{goal}}.
-  </textarea>
+  <textarea id="promptTemplate" rows="6"></textarea>
 
-  <label for="role">Role:</label>
-  <input id="role" placeholder="e.g., career coach">
+  <div id="dynamicFields"></div>
 
-  <label for="audience">Audience:</label>
-  <input id="audience" placeholder="e.g., new grads">
-
-  <label for="goal">Goal:</label>
-  <input id="goal" placeholder="e.g., find their first job">
+  <h3>➕ Actions</h3>
+  <div id="actionsContainer"></div>
+  <button onclick="addAction()">Add Action</button>
 
   <button onclick="generate()">Generate Prompt</button>
 
   <div id="result"></div>
 
   <script>
-    function generate() {
-      let template = document.getElementById("promptTemplate").value;
-      const vars = ["role", "audience", "goal"];
-      vars.forEach(function(key) {
-        const value = document.getElementById(key).value;
-        const regex = new RegExp(`{{${key}}}`, 'g');
-        template = template.replace(regex, value);
+    let templates = {
+      "Root Cause Analysis": {
+        template: "Analyze anomaly in {{main_metric}} caused by {{breakdown_column}} in {{region}}. Focus on {{action_combination}}.",
+        fields: ["main_metric", "breakdown_column", "region"]
+      },
+      "Performance Summary": {
+        template: "Summarize performance of {{campaign}} over {{time_period}}. Highlight changes in {{kpi}}.",
+        fields: ["campaign", "time_period", "kpi"]
+      }
+    };
+
+    let actions = {
+      "Compare Uplift": "Compare uplift of {{main_metric}} between test and control.",
+      "Segment Breakdown": "Break down performance by {{segment_column}}.",
+      "Fraud Detection": "Look into potential fraud using {{fraud_metric}}."
+    };
+
+    let selectedActions = [];
+
+    function loadTemplate() {
+      let name = document.getElementById('templateSelect').value;
+      let data = templates[name];
+      document.getElementById('promptTemplate').value = data.template;
+      updateFields(data.fields);
+    }
+
+    function updateFields(fields) {
+      let container = document.getElementById('dynamicFields');
+      container.innerHTML = '';
+      fields.forEach(f => {
+        let label = document.createElement('label');
+        label.innerText = `${f}:`;
+        let input = document.createElement('input');
+        input.id = f;
+        input.placeholder = `Enter ${f}`;
+        container.appendChild(label);
+        container.appendChild(input);
       });
-      document.getElementById("result").innerText = template;
+    }
+
+    function addAction() {
+      let select = document.createElement('select');
+      Object.keys(actions).forEach(k => {
+        let option = document.createElement('option');
+        option.value = k;
+        option.text = k;
+        select.appendChild(option);
+      });
+      document.getElementById('actionsContainer').appendChild(select);
+    }
+
+    function replaceKeywords(template, vars) {
+      for (let key in vars) {
+        let regex = new RegExp(`{{${key}}}`, 'g');
+        template = template.replace(regex, vars[key]);
+      }
+      return template;
+    }
+
+    function generate() {
+      let rawTemplate = document.getElementById("promptTemplate").value;
+      let fields = document.querySelectorAll('#dynamicFields input');
+      let values = {};
+      fields.forEach(f => values[f.id] = f.value);
+
+      let actionElements = document.querySelectorAll('#actionsContainer select');
+      let actionSnippets = [];
+      actionElements.forEach(s => actionSnippets.push(actions[s.value]));
+      values['action_combination'] = actionSnippets.join(' ');
+
+      let result = replaceKeywords(rawTemplate, values);
+      document.getElementById("result").innerText = result;
+    }
+
+    // Initialize template list
+    window.onload = function() {
+      let selector = document.getElementById('templateSelect');
+      Object.keys(templates).forEach(name => {
+        let option = document.createElement('option');
+        option.value = name;
+        option.innerText = name;
+        selector.appendChild(option);
+      });
+      loadTemplate();
     }
   </script>
 </body>
